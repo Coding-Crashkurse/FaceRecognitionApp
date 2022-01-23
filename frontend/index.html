@@ -9,6 +9,7 @@
   <body>
     <div class="container">
       <h1>Face Detection App</h1>
+      <h2 id="faces"></h2>
       <!-- <button onclick="drawFace()">Draw Face</button> -->
       <div class="uploadwrapper">
         <input type="file" id="fileUpload" />
@@ -25,6 +26,7 @@
   const canvasEle = document.getElementById("canvas");
   const image = document.getElementById("image");
   const imgwrapper = document.querySelector(".imgwrapper");
+  const faces_amount = document.getElementById("faces");
 
   const clearCanvas = (width, height) => {
     canvasEle.width = width;
@@ -65,6 +67,12 @@
       sendImage(image.src).then((data) => {
         imgwrapper.classList.remove("hidden");
         clearCanvas(image.width, image.height);
+        if (data.faces.length === 0) {
+          faces_amount.innerHTML = `The AI detected no faces`;
+        } else {
+          faces_amount.innerHTML = `The AI detected ${data.faces.length} faces. Check the green boxes`;
+        }
+
         for (face of data.faces) {
           drawFace(face);
         }
