@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Face Detection App</h1>
+      <!-- <button onclick="drawFace()">Draw Face</button> -->
+      <div class="uploadwrapper">
+        <input type="file" id="fileUpload" />
+      </div>
+      <div class="imgwrapper hidden">
+        <img id="image" src="#" />
+        <canvas id="canvas"></canvas>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script>
+  const canvasEle = document.getElementById("canvas");
+  const image = document.getElementById("image");
+  const imgwrapper = document.querySelector(".imgwrapper");
+
+  const clearCanvas = (width, height) => {
+    canvasEle.width = width;
+    canvasEle.height = height;
+
+    ctx = canvasEle.getContext("2d");
+    ctx.clearRect(0, 0, canvasEle.width, canvasEle.height);
+  };
+
+  const drawFace = (rect) => {
+    ctx = canvasEle.getContext("2d");
+    ctx.strokeStyle = "green";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.rect(...rect);
+    ctx.stroke();
+  };
+
+  const sendImage = async () => {
+    const response = await fetch(image.src);
+    const data = await response.blob();
+
+    const res = await fetch("http://localhost:8000/predict", {
+      method: "POST",
+      body: data,
+    });
+    const faces = await res.json();
+    console.log(faces);
+    return faces;
+  };
+
+  document.querySelector("#fileUpload").addEventListener("change", (event) => {
+    const files = event.target.files;
+    const output = URL.createObjectURL(files[0]);
+
+    image.src = output;
+    image.onload = () => {
+      sendImage(image.src).then((data) => {
+        imgwrapper.classList.remove("hidden");
+        clearCanvas(image.width, image.height);
+        for (face of data.faces) {
+          drawFace(face);
+        }
+      });
+    };
+  });
+</script>
+
+<style>
+  body {
+    background: rgb(245, 245, 245);
+  }
+
+  .container {
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .imgwrapper {
+    padding: 10px 10px;
+    position: relative;
+  }
+
+  #image {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  #canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .hidden {
+    visibility: hidden;
+  }
+</style>
